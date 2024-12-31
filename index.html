@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Roulette</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #1e1e1e; /* Dark background */
+            color: #f1f1f1; /* Light text color */
+        }
+        h1 {
+            color: #f1f1f1;
+        }
+        #history {
+            margin-top: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+        }
+        .roulette-number {
+            width: 60px;
+            height: 60px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 50%;
+            font-weight: bold;
+            color: white;
+            text-align: center;
+            line-height: 40px;
+        }
+        input[type="text"] {
+            padding: 10px;
+            font-size: 16px;
+            border-radius: 5px;
+            border: none;
+            background-color: #333;
+            color: #fff;
+        }
+        button {
+            padding: 10px;
+            font-size: 16px;
+            cursor: pointer;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        #input-form {
+            margin-top: 20px;
+            text-align: center;
+        }
+        .green {
+            background-color: #008000;
+        }
+        .red {
+            background-color: #ff0000;
+        }
+        .black {
+            background-color: #000000;
+        }
+        .invalid {
+            color: red;
+            font-size: 14px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>History</h1>
+
+    <div id="history"></div>
+
+    <div id="input-form">
+        <label for="number"></label>
+        <input type="text" id="number" maxlength="3">
+        <button onclick="addRouletteNumber()">Add Number</button>
+        <p class="invalid" id="invalid-message" style="display: none;">Invalid input. Please enter 0, 00, or a number between 1 and 36.</p>
+    </div>
+
+    <script>
+        const redNumbers = [27, 25, 12, 19, 18, 21, 16, 23, 14, 9, 30, 7, 32, 5, 34, 3, 36, 1];
+        const blackNumbers = [10, 29, 8, 31, 6, 33, 4, 35, 2, 28, 26, 11, 20, 17, 22, 15, 24, 13];
+        const greenNumbers = ['0', '00'];
+        
+        let history = [];
+
+        // Function to add a roulette number to the history
+        function addRouletteNumber() {
+            const numberInput = document.getElementById("number").value.trim();
+            const invalidMessage = document.getElementById("invalid-message");
+
+            // Validate the input
+            if (!isValidInput(numberInput)) {
+                invalidMessage.style.display = "block";
+                return;
+            } else {
+                invalidMessage.style.display = "none";
+            }
+
+            // Add the number to history
+            history.unshift(numberInput);
+            if (history.length > 10) {
+                history.pop();  // Keep only the last 10 numbers
+            }
+
+            // Update the history display
+            displayHistory();
+            document.getElementById("number").value = "";  // Clear the input field
+        }
+
+        // Function to check if the input is valid
+        function isValidInput(input) {
+            return greenNumbers.includes(input) || (input >= 1 && input <= 36);
+        }
+
+        // Function to display the history of numbers
+        function displayHistory() {
+            const historyContainer = document.getElementById("history");
+            historyContainer.innerHTML = "";  // Clear the previous history display
+
+            // Loop through the history and display each number with its color
+            history.forEach(num => {
+                const numberDiv = document.createElement("div");
+                numberDiv.classList.add("roulette-number");
+                
+                if (greenNumbers.includes(num)) {
+                    numberDiv.classList.add("green");
+                } else if (redNumbers.includes(parseInt(num))) {
+                    numberDiv.classList.add("red");
+                } else if (blackNumbers.includes(parseInt(num))) {
+                    numberDiv.classList.add("black");
+                }
+
+                numberDiv.textContent = num;
+                historyContainer.appendChild(numberDiv);
+            });
+        }
+    </script>
+
+</body>
+</html>
