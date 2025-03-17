@@ -65,7 +65,12 @@
                 const partyChances = [
                     { name: 'LPC', chance: props.LPC_prob, color: '#d71a21', vote_share: props.LPC_vote_per },
                     { name: 'CPC', chance: props.CPC_prob, color: '#142e52', vote_share: props.CPC_vote_per },
-                    { name: 'BQ', chance: props.BQ_prob, color: '#00a7ec', vote_share: props.BQ_vote_per },
+                    ...(props.FED_NUM && String(props.FED_NUM).startsWith('24') ? [{
+                        name: 'BQ',
+                        chance: props.BQ_prob,
+                        color: '#00a7ec',
+                        vote_share: props.BQ_vote_per
+                    }] : []),
                     { name: 'NDP', chance: props.NDP_prob, color: '#f58220', vote_share: props.NDP_vote_per },
                     { name: 'GPC', chance: props.GPC_prob, color: '#3d9b35', vote_share: props.GPC_vote_per },
                     { name: 'PPC', chance: props.PPC_prob, color: '#442d7b', vote_share: props.PPC_vote_per }
