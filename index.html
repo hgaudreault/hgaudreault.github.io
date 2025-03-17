@@ -89,16 +89,15 @@
                 this._div.innerHTML = `
                     <h4>${props.ED_NAMEE} (${props.lean})</h4>
                     <div style="display: flex; gap: 20px;">
-                        <!-- Chance List Column -->
-                        <div style="width: 150px;">
-                            <b>Chance to Win:</b><br />
-                            ${chanceList}
-                        </div>
-
                         <!-- Vote Share Column -->
                         <div style="width: 150px;">
                             <b>Projected Vote Share:</b><br />
                             ${voteShareList}
+                        </div>
+                        <!-- Chance List Column -->
+                        <div style="width: 150px;">
+                            <b>Chance to Win:</b><br />
+                            ${chanceList}
                         </div>
                     </div>
                 `;
