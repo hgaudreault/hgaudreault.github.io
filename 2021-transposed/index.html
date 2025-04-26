@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2021 Canadian Federal Transposed Map</title>
+    <!-- Include Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css" />
+    <style>
+        /* Make sure the body and html take full height */
+        html, body {
+            height: 100%;
+            margin: 0;
+        }
+
+        /* Set the map to take full width and height of the screen */
+        #map {
+            height: 100%;
+            width: 100%;
+        }
+
+        .info {
+            padding: 6px 8px;
+            font: 14px/16px Arial, Helvetica, sans-serif;
+            background: white;
+            background: rgba(255,255,255,0.95);
+            box-shadow: 0 0 15px rgba(0,0,0,0.2);
+            border-radius: 5px;
+        }
+        .info h4 {
+            margin: 0 0 7px;
+            color: #595959;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Create a div to hold the map -->
+    <div id="map"></div>
+
+    <!-- Include Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>
+
+    <script>
+        // Initialize the map centered on Canada
+        const map = L.map('map').setView([56.1304, -106.3468], 4); // Center on Canada with zoom level 4
+
+        // Add a tile layer to the map (OpenStreetMap)
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
+
+        var info = L.control();
+
+        info.onAdd = function (map) {
+            this._div = L.DomUtil.create('div', 'info'); // create a div with a class "info"
+            this.update();
+            return this._div;
+        };
+
+        // method that we will use to update the control based on feature properties passed
+        info.update = function (props) {
+            if (props) {
+                // Define an array of party names, their chances, and vote shares
+                const partyResults = [
+                    { name: 'LPC', votes: props.LPC_votes, color: '#d71a21', vote_share: props.LPC_pct },
+                    { name: 'CPC', votes: props.CPC_votes, color: '#142e52', vote_share: props.CPC_pct },
+                    { name: 'BQ', votes: props.BQ_votes, color: '#00a7ec', vote_share: props.BQ_pct },
+                    { name: 'NDP', votes: props.NDP_votes, color: '#f58220', vote_share: props.NDP_pct },
+                    { name: 'GPC', votes: props.GPC_votes, color: '#3d9b35', vote_share: props.GPC_pct },
+                    { name: 'PPC', votes: props.PPC_votes, color: '#442d7b', vote_share: props.PPC_pct },
+                    {name: 'Other', votes: props.other_votes, color: '#c4c4c4', vote_share: props.other_pct }
+                ];
+
+                // Sort the array in descending order based on the vote share values
+                partyResults.sort((a, b) => b.vote_share - a.vote_share);
+
+                // Build the list of chances and vote shares
+                let voteList = '';
+                let voteShareList = '';
+
+                partyResults.forEach(party => {
+                    // Format the chance as a percentage with one decimal place
+                    voteList += `<span style="color: ${party.color};"><b>${party.name}:</b></span> ${(party.votes)}<br />`;
+                    // Format the vote share as a percentage with one decimal place
+                    voteShareList += `<span style="color: ${party.color};"><b>${party.name}:</b></span> ${(party.vote_share * 100).toFixed(1)}%<br />`;
+                });
+
+                // Update the inner HTML with the name, federal number, and the ordered list of chances and vote shares
+                this._div.innerHTML = `
+                    <h4>${props.ED_NAMEE} (${props.FED_NUM})</h4>
+                    <div style="display: flex; gap: 20px;">
+                        <!-- Chance List Column -->
+                        <div style="width: 150px;">
+                            <b>Number of Votes:</b><br />
+                            ${voteList}
+                        </div>
+
+                        <!-- Vote Share Column -->
+                        <div style="width: 150px;">
+                            <b>Vote Percentage:</b><br />
+                            ${voteShareList}
+                        </div>
+                    </div>
+                `;
+            } else {
+                this._div.innerHTML = '<h4>2021 Transposed Results Map</h4> Hover over a riding';
+            }
+        };
+
+        info.addTo(map);
+
+        function get_colour(value) {
+            return value == 'LPC' ? '#d71a21' :
+                value == 'CPC' ? '#142e52' : 
+                value == 'BQ' ? '#00a7ec' : 
+                value == 'NDP' ? '#f58220' : 
+                value == 'GPC' ? '#3d9b35' : 
+                '#ff9ac9' ;
+        }
+
+        function style(feature) {
+            return {
+                fillColor: get_colour(feature.properties.winner),
+                weight: 2,
+                opacity: 1,
+                color: 'white',
+                dashArray: '3',
+                fillOpacity: 0.7
+            };
+        }
+
+        function highlightFeature(e) {
+            var layer = e.target;
+
+            layer.setStyle({
+                weight: 5,
+                color: '#666',
+                dashArray: '',
+                fillOpacity: 0.7
+            });
+
+            layer.bringToFront();
+            info.update(layer.feature.properties);
+        }
+
+        function resetHighlight(e) {
+            geojson.resetStyle(e.target);
+            info.update();
+        }
+
+        function zoomToFeature(e) {
+            map.fitBounds(e.target.getBounds());
+        }
+
+        function onEachFeature(feature, layer) {
+            layer.on({
+                mouseover: highlightFeature,
+                mouseout: resetHighlight,
+                click: zoomToFeature
+            });
+        }
+
+        fetch('transposed_map.json')
+            .then(response => response.json()) // Parse the GeoJSON response
+            .then(geojsonData => {
+                // Add the GeoJSON data to the map with the event handlers
+                geojson = L.geoJSON(geojsonData, {
+                    style: style,
+                    onEachFeature: onEachFeature
+                }).addTo(map);
+            })
+            .catch(error => {
+                console.error('Error loading GeoJSON data:', error);
+            });
+    </script>
+
+</body>
+</html>
